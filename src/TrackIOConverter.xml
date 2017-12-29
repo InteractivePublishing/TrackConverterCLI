@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>IO</category>
+  <title>Tract IO Converter</title>
+  <description><![CDATA[Convert a tract file to a VTK model.]]></description>
+  <version>0.0.0.</version>
+  <documentation-url>https://github.com/ihnorton/TractIO</documentation-url>
+  <license/>
+  <contributor>Isaiah Norton (MIT), Johan Andruejol (Kitware Inc.)</contributor>
+  <acknowledgements><![CDATA[MIT, Kitware Inc.]]></acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <file>
+      <name>InputFileName</name>
+      <label>Input File</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description><![CDATA[Track (*.trk) file.]]></description>
+    </file>
+    <geometry fileExtensions=".vtk,.vtp,.vtu">
+      <name>OutputModel</name>
+      <label>Output Model</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description><![CDATA[Output track model]]></description>
+    </geometry>
+  </parameters>
+</executable>

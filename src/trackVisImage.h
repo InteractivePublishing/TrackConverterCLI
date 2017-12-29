@@ -1,5 +1,3 @@
-#define DLLEXPORT __attribute__ ((visibility ("default"))) // TODO msvc
-
 struct TVHeader {
     char id_string[6];
     short int dim[3];
@@ -32,5 +30,5 @@ typedef void TrackVisReader;
 
 extern "C" {
 // methods
-DLLEXPORT TrackVisReader* tv_reader_load(const char *filename);
+int tv_reader_load(const char *filename, const char* out);
 } // end extern "C"

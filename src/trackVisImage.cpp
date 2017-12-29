@@ -9,6 +9,9 @@
 #include "vtkSmartPointer.h"
 #include "vtkCellArray.h"
 #include "vtkFloatArray.h"
+#include "vtkPolyDataWriter.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkTransform.h"
 
 #include "tractIOCommon.h"
 #include "trackVisImage.h"
@@ -18,23 +21,6 @@ namespace {
        return sizeof(float) * TV_TRACK_NUMPTS * (n_pts + (n_pts * n_scalars) + (n_properties));
     }
 };
-
-/*
-class TVTrack {
-    public:
-        int n_points;
-        float **track_data;
-        float *track_properties;
-
-    private:
-        namespace {
-            class _datadeleter {
-            void operator()(char* mem) { if (mem) free(mem); }
-            }
-        }
-        std::unique_ptr<char*, _datadeleter> data;
-};
-*/
 
 struct TVTrack {
     int n_points;
@@ -59,9 +45,10 @@ class TVReader {
     private:
         TVHeader header;
         size_t filesize;
-        std::unique_ptr<std::istream> stream;
+        std::unique_ptr<std::fstream> stream;
         std::vector< std::pair<size_t, size_t> > offsets;
 };
+
 
 TVReader::TVReader(std::string filename)
     : stream( std::make_unique<std::fstream>(std::fstream(filename, ios::in | ios::binary)) )
@@ -139,7 +126,7 @@ TVReader::get_polydata() {
             std::iota(idlist.begin(), idlist.end(), cur_idx);
             lines->InsertNextCell(cur_pts, idlist.data());
 
-            //std::cout << "pos:" << stream->tellg() << " cur_idx: " << cur_idx << " cur_pts: " << cucurr_pts << std::endl;
+            //std::cout << "pos:" << stream->tellg() << " cur_idx: " << cur_idx << " cur_pts: " << cur_pts << std::endl;
             cur_idx += cur_pts;
         }
 
@@ -167,17 +154,15 @@ TVReader::dump_header(std::ostream &ostr) {
     ostr << std::left << std::setw(10) << "n_points: " << header.n_count << std::endl;
 }
 
-// C API
-#include "vtkPolyDataWriter.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkTransform.h"
+// The main method
 
-TrackVisReader* tv_reader_load(const char *filename) {
+int tv_reader_load(const char *filename, const char* output)
+{
     std::cout << "sizeof TVHeader: " << sizeof(TVHeader) << std::endl;
     try {
         auto r = new TVReader(filename);
         if (!r)
-            return NULL;
+            return EXIT_FAILURE;
         r->dump_header(std::cout);
         auto mat = r->get_vox_to_ras();
         mat->Print(std::cout);
@@ -193,14 +178,15 @@ TrackVisReader* tv_reader_load(const char *filename) {
         tfmpd->Update();
 
         vtkNew<vtkPolyDataWriter> writer;
-        writer->SetFileName("out.vtk");
+        writer->SetFileName(output);
         writer->SetInputConnection(tfmpd->GetOutputPort());
         writer->Update();
         writer->Write();
 
-        return r;
+        delete r;
+        return EXIT_SUCCESS;
     } catch (...) {
         std::cerr << "tv_reader_load failed." << std::endl;
-        return nullptr;
+        return EXIT_FAILURE;
     }
 }
