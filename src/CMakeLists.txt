@@ -2,6 +2,12 @@
 set(MODULE_NAME TrackIOConverter)
 
 #
+# VTK
+#
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
+#
 # SlicerExecutionModel
 #
 find_package(SlicerExecutionModel REQUIRED)
