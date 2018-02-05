@@ -16,6 +16,14 @@
 #include "tractIOCommon.h"
 #include "trackVisImage.h"
 
+namespace track_converter_cli {
+  template<typename T, typename... Args>
+  std::unique_ptr<T> make_unique(Args&&... args)
+  {
+      return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  }
+};
+
 namespace {
     size_t tv_trackblock_size(size_t n_pts, size_t n_scalars, size_t n_properties) {
        return sizeof(float) * TV_TRACK_NUMPTS * (n_pts + (n_pts * n_scalars) + (n_properties));
@@ -51,7 +59,7 @@ class TVReader {
 
 
 TVReader::TVReader(std::string filename)
-    : stream( std::make_unique<std::fstream>(std::fstream(filename, ios::in | ios::binary)) )
+    : stream( track_converter_cli::make_unique<std::fstream>(std::fstream(filename, ios::in | ios::binary)) )
 {
     if (stream->fail())
         throw;
