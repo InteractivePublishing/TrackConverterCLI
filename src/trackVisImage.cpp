@@ -24,12 +24,6 @@ namespace track_converter_cli {
   }
 };
 
-namespace {
-    size_t tv_trackblock_size(size_t n_pts, size_t n_scalars, size_t n_properties) {
-       return sizeof(float) * TV_TRACK_NUMPTS * (n_pts + (n_pts * n_scalars) + (n_properties));
-    }
-};
-
 struct TVTrack {
     int n_points;
     float **track_data;
@@ -79,30 +73,6 @@ TVReader::get_vox_to_ras() {
         for (size_t j = 0; j < 4; j++)
             mat->SetElement(i,j, header.vox_to_ras[i][j]);
     return vtkSP<vtkMatrix4x4>(mat.GetPointer());
-}
-
-std::unique_ptr<TVTrack>
-TVReader::read_track(size_t n) {
-    size_t cur_offset = (offsets.size() > 0 ? offsets.back().second : TV_HEADERLEN);
-    while (offsets.size() < n) {
-        int n_pts;
-        if (cur_offset >= this->filesize)
-            continue;
-        stream->seekg(cur_offset);
-
-        this->stream->read((char*)&n_pts, sizeof(int));
-        cur_offset += tv_trackblock_size(offsets.back().first, header.n_scalars, header.n_properties);
-        offsets.push_back(std::make_pair(n_pts, cur_offset));
-    }
-
-    if (cur_offset == TV_HEADERLEN || cur_offset >= this->filesize)
-        return nullptr;
-
-    this->stream->seekg(offsets[n].second, ios::beg);
-    size_t blocksize = tv_trackblock_size(offsets[n].first, header.n_scalars, header.n_properties);
-
-    char *block = (char*)malloc(blocksize);
-
 }
 
 vtkSP<vtkPolyData>
